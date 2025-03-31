@@ -7,8 +7,8 @@ import {MerkleProof} from "@openzeppelin/contracts/utils/cryptography/MerkleProo
 contract MerkleAirdrop{
     using SafeERC20 for IERC20;
 
-    error MerkleProof__InvalidProof();
-    error MerkleProof__AlreadyClaimed();   
+    error MerkleAirdrop__InvalidProof();
+    error MerkleAirdrop__AlreadyClaimed();   
 
     address[] claimers;
 
@@ -25,12 +25,12 @@ contract MerkleAirdrop{
 
     function claim(address account, uint256 amount, bytes32[] calldata merkleProf) external{
         if(s_hasClaimed[account]){
-            revert MerkleProof__AlreadyClaimed();
+            revert MerkleAirdrop__AlreadyClaimed();
         }
 
-        bytes32 leaf = keccak256(bytes.concat(keccak256(abi.encodePacked(account, amount))));
+        bytes32 leaf = keccak256(bytes.concat(keccak256(abi.encode(account, amount))));
         if(!MerkleProof.verify(merkleProf, i_merkleRoot, leaf)){
-            revert MerkleProof__InvalidProof();
+            revert MerkleAirdrop__InvalidProof();
         }
         s_hasClaimed[account] = true;
         emit Claim(account, amount);
