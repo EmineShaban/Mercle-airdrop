@@ -20,6 +20,7 @@ contract MerkleAirdropTest is ZkSyncChainChecker, Test {
     bytes32 proofTwo =
         0xe5ebd1e1b5a5478a944ecab36a9a954ac3b6b8216875f6524caa7a1d87096576;
     bytes32[] public PROOF = [proofOne, proofTwo];
+    address public gasPayer;
     address user;
     uint256 userPrivKey;
 
@@ -35,12 +36,18 @@ contract MerkleAirdropTest is ZkSyncChainChecker, Test {
         }
 
         (user, userPrivKey) = makeAddrAndKey("user");
+        gasPayer = makeAddr("gasPayer");
     }
 
     function testUserCanClaim() public {
         uint256 startingBalance = token.balanceOf(user);
-        vm.prank(user);
-        airdrop.claim(user, AMOUNT_TO_CLAIM, PROOF);
+        bytes32 digest = airdrop.getMessage(user, AMOUNT_TO_CLAIM);
+        // vm.prank(user);
+
+        (uint8 v, bytes32 r, bytes32 s) = vm.sign(userPrivKey, digest);
+        vm.prank(gasPayer);
+        airdrop.claim(user, AMOUNT_TO_CLAIM, PROOF,v ,r,s);
+        
         uint256 endingBalance = token.balanceOf(user);
         assertEq(endingBalance - startingBalance, AMOUNT_TO_CLAIM);
     }
