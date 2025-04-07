@@ -39,6 +39,7 @@ contract MerkleAirdrop is EIP712 {
         if(!_isValidSignature(account, getMessage(account, amount), v, r, s)){
             revert MerkleAirdrop__InvalidSignature();
         }
+ 
         bytes32 leaf = keccak256(bytes.concat(keccak256(abi.encode(account, amount))));
         if(!MerkleProof.verify(merkleProf, i_merkleRoot, leaf)){
             revert MerkleAirdrop__InvalidProof();
@@ -48,7 +49,11 @@ contract MerkleAirdrop is EIP712 {
         i_airdropToken.safeTransfer(account, amount);
     }
 
-   function getMessage(address account, uint256 amount) public view returns(bytes32){
+      function getMessageHash(address account, uint256 amount) public view returns (bytes32) {
+        return _hashTypedDataV4(
+            keccak256(abi.encode(MESSAGE_TYPEHASH, AirdropClaim({ account: account, amount: amount })))
+        );
+    }function getMessage(address account, uint256 amount) public view returns(bytes32){
         return _hashTypedDataV4(keccak256(abi.encode(MESSAGE_TYPEHASH, AirdropClaim({account: account, amount: amount}))));
     }
     function getMerkleRoot() external view returns(bytes32){

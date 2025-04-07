@@ -6,15 +6,17 @@ import {DevOpsTools} from "lib/foundry-devops/src/DevOpsTools.sol";
 import {MerkleAirdrop} from "../src/MerkleAirdrop.sol";
 
 
-contract Interact is Script {
+contract ClaimAirdrop is Script {
     address CLAIMING_ADDRESS = 0x6CA6d1e2D5347Bfab1d91e883F1915560e09129D;
     uint256 CLAIMING_AMOUNT = 25 * 1e18;
     bytes32 PROOF_ONE = 0x0fd7c981d39bece61f7499702bf59b3114a90e66b51ba2c53abdf7b62986c00a;
     bytes32 PROOF_TWO = 0xe5ebd1e1b5a5478a944ecab36a9a954ac3b6b8216875f6524caa7a1d87096576;
     bytes32[] PROOF = [PROOF_ONE, PROOF_TWO];
-    betes private SIGNATURE = hex"12e145324b60cd4d302bfad59f72946d45ffad8b9fd608e672fd7f02029de7c438cfa0b8251ea803f361522da811406d441df04ee99c3dc7d65f8550e12be2ca1c";
+    bytes private SIGNATURE = hex"1d8ccdad46997f89c7ee2c7e4c30e54f42839742844aa87f3619ac260b7cbe5e5ed1f098274bb533d89b07f54de67c36ba1295e4acdfe9b4b3ef8b735f60300e1c";
 
-    function claimAirdrop (address airdrop) public{
+    error ClaimAirdropScript__InvalidSignatureLength();
+
+    function claimAirdrop(address airdrop) public{
         vm.startBroadcast();
         (uint8 v, bytes32 r, bytes32 s ) = splitSignature(SIGNATURE);
         MerkleAirdrop(airdrop).claim(CLAIMING_ADDRESS, CLAIMING_AMOUNT, PROOF, v, r, s);
@@ -22,10 +24,9 @@ contract Interact is Script {
     }
 
     function splitSignature(bytes memory sig) public pure returns(uint8 v, bytes32 r, bytes32 s){
-        if(sig.length != 65) {
-            revert ClaimAirdrop__InvalidSignatureLength();
+      if (sig.length != 65) {
+            revert ClaimAirdropScript__InvalidSignatureLength();
         }
-
         assembly {
             r := mload(add(sig, 32))
             s := mload(add(sig, 64))
